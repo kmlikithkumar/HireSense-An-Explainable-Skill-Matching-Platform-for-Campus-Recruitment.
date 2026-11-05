@@ -1,0 +1,112 @@
+erDiagram
+    DEPARTMENTS ||--o{ STUDENTS : "belongs to"
+    USERS ||--o| STUDENTS : "has profile"
+    USERS ||--o{ JOB_POSTINGS : "created_by"
+    COMPANIES ||--o{ JOB_POSTINGS : "offers"
+    JOB_POSTINGS ||--o{ JOB_ELIGIBLE_DEPARTMENTS : "restricted to"
+    DEPARTMENTS ||--o{ JOB_ELIGIBLE_DEPARTMENTS : "accepted by"
+    STUDENTS ||--o{ APPLICATIONS : "submits"
+    JOB_POSTINGS ||--o{ APPLICATIONS : "receives"
+    APPLICATIONS ||--o{ INTERVIEW_ROUNDS : "has"
+    APPLICATIONS ||--o{ APPLICATION_AUDIT : "logged in"
+    STUDENTS ||--o{ STUDENT_PROFILE_AUDIT : "edit history"
+    STUDENTS ||--o{ STUDENT_SKILLS : "has"
+    SKILLS ||--o{ STUDENT_SKILLS : "tagged on"
+    JOB_POSTINGS ||--o{ JOB_SKILLS : "requires"
+    SKILLS ||--o{ JOB_SKILLS : "required by"
+
+    DEPARTMENTS {
+        int dept_id PK
+        varchar code UK
+        varchar name
+    }
+    USERS {
+        int user_id PK
+        varchar email UK
+        text password_hash
+        varchar role "student or admin"
+        timestamptz created_at
+    }
+    STUDENTS {
+        int student_id PK
+        int user_id FK
+        varchar srn UK
+        varchar full_name
+        int dept_id FK
+        numeric cgpa "0 to 10"
+        int backlog_count
+        int grad_year
+        text resume_text
+        vector resume_embedding "384 dims"
+        varchar embedding_model
+    }
+    COMPANIES {
+        int company_id PK
+        varchar name UK
+        varchar industry
+        varchar website
+    }
+    JOB_POSTINGS {
+        int job_id PK
+        int company_id FK
+        varchar title
+        text jd_text
+        vector jd_embedding "384 dims"
+        numeric min_cgpa
+        int max_backlogs
+        numeric ctc_lpa
+        timestamptz deadline
+        varchar status "open or closed"
+        int created_by FK
+        tsvector search_tsv "generated"
+    }
+    JOB_ELIGIBLE_DEPARTMENTS {
+        int job_id PK, FK
+        int dept_id PK, FK
+    }
+    SKILLS {
+        int skill_id PK
+        varchar name UK
+    }
+    STUDENT_SKILLS {
+        int student_id PK, FK
+        int skill_id PK, FK
+        varchar source
+    }
+    JOB_SKILLS {
+        int job_id PK, FK
+        int skill_id PK, FK
+    }
+    APPLICATIONS {
+        int application_id PK
+        int student_id FK
+        int job_id FK
+        varchar status
+        numeric match_score
+        timestamptz applied_at
+    }
+    INTERVIEW_ROUNDS {
+        int round_id PK
+        int application_id FK
+        int round_no
+        varchar round_type
+        timestamptz scheduled_at
+        varchar result
+    }
+    APPLICATION_AUDIT {
+        bigint audit_id PK
+        int application_id
+        varchar old_status
+        varchar new_status
+        int changed_by
+        timestamptz changed_at
+    }
+    STUDENT_PROFILE_AUDIT {
+        bigint audit_id PK
+        int student_id FK
+        varchar field "cgpa, backlog_count, dept_id"
+        text old_value
+        text new_value
+        int changed_by
+        timestamptz changed_at
+    }

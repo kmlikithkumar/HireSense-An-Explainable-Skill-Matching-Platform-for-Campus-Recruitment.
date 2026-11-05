@@ -1,0 +1,31 @@
+sequenceDiagram
+  autonumber
+  actor S as Student
+  participant UI as Next.js UI
+  participant API as API route
+  participant DB as PostgreSQL + pgvector
+  actor A as Admin
+  S->>UI: Save resume text
+  UI->>API: PUT /api/student/profile
+  API->>API: embed(resume) -> 384-d vector
+  API->>DB: UPDATE students (text, vector, model)
+  DB->>DB: trigger refreshes student_skills
+  S->>UI: Open "My matches"
+  UI->>API: GET /api/student/matches
+  API->>DB: match_jobs_for_student(id)
+  DB-->>API: ranked jobs, cosine score, matched and missing skills, eligibility
+  S->>UI: Apply
+  UI->>API: POST /api/student/applications
+  API->>DB: INSERT application
+  DB->>DB: BEFORE INSERT trigger: check_eligibility, store match_score
+  alt not eligible
+    DB-->>API: error HS001
+    API-->>UI: 422 with the reason
+  else eligible
+    DB-->>UI: application created
+  end
+  A->>UI: Shortlist candidate
+  UI->>API: POST /api/admin/applications/id/shortlist
+  API->>DB: shortlist_candidate() in one transaction (row lock)
+  DB->>DB: status guard (HS002), audit row, round 1 created
+  DB-->>A: shortlisted and round scheduled

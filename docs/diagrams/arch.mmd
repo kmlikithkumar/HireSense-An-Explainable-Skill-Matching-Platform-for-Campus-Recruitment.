@@ -1,0 +1,28 @@
+flowchart LR
+  subgraph Client["Browser"]
+    UI["Next.js pages (React 19)<br/>student and admin screens<br/>light / dark theme"]
+  end
+  subgraph Server["Next.js server"]
+    MW["middleware.ts<br/>JWT check and role redirect"]
+    API["Route Handlers /api/*<br/>requireRole + zod validation"]
+    LIB["lib/<br/>db pool, auth (jose, bcrypt),<br/>embeddings, error mapping"]
+    EMB["Embedder<br/>MiniLM 384-d (transformers.js)<br/>or offline hashing fallback"]
+  end
+  subgraph DB["PostgreSQL 16 + pgvector"]
+    TBL[("13 tables<br/>constraints, FKs")]
+    VEC[("vector(384) columns<br/>HNSW cosine indexes")]
+    FTS[("tsvector + GIN<br/>full-text search")]
+    FN["Functions and triggers<br/>check_eligibility<br/>shortlist_candidate<br/>match_jobs_for_student<br/>match_students_for_job<br/>HS001 / HS002 / HS003"]
+    VW["Views (3)"]
+    AUD[("application_audit<br/>student_profile_audit")]
+  end
+  UI -- "HTTPS + httpOnly cookie" --> MW --> API
+  API --> LIB
+  LIB --> EMB
+  LIB -- "parameterised SQL (pg)" --> FN
+  FN --> TBL
+  FN --> VEC
+  API --> FTS
+  API --> VW
+  TBL -- "triggers" --> AUD
+  EMB -. "vectors stored with model name" .-> VEC

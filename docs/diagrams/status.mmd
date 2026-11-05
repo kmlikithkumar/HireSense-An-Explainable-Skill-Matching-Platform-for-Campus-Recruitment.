@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> applied: student applies (eligibility trigger)
+  applied --> shortlisted: admin shortlists (creates round 1)
+  applied --> rejected: admin rejects
+  applied --> withdrawn: student withdraws
+  shortlisted --> selected: admin selects
+  shortlisted --> rejected: admin rejects
+  shortlisted --> withdrawn: student withdraws
+  selected --> [*]
+  rejected --> [*]
+  withdrawn --> [*]
