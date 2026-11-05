@@ -1,6 +1,6 @@
 # HireSense ER diagram
 
-Renders on GitHub (Mermaid). Source of truth for the tables is `db/01_schema.sql`.
+Source of truth for the tables is `db/01_schema.sql`.
 
 ```mermaid
 erDiagram
